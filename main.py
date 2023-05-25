@@ -2,6 +2,7 @@ from database import *
 from fastapi import FastAPI, Body, status, Depends
 from fastapi.responses import JSONResponse, FileResponse
 
+
 app = FastAPI()
 
 # определяем зависимость
@@ -25,17 +26,12 @@ def get_user(id: int, db: Session = Depends(get_db)):
     return db.query(User).filter(User.id == id).first()
 
 @app.post("/api/users")
-def create_user(user: User, db: Session = Depends(get_db)):
+def create_user(data = Body(), db: Session = Depends(get_db)):
+    user = User(name = data['name'], age=data['age'])
     db.add(user)
     db.commit()
     db.refresh(user)
     return user
-
-# @app.put("/api/users/{id}")
-# def update_user(id: int, user: User, db: Session = Depends(get_db)):
-#     db.query(User).filter(User.id == id).update(user.dict())
-#     db.commit()
-#     return user
 
 @app.delete("/api/users/{id}")
 def delete_user(id: int, db: Session = Depends(get_db)):
@@ -43,3 +39,11 @@ def delete_user(id: int, db: Session = Depends(get_db)):
     db.delete(user)
     db.commit()
     return user
+
+@app.put("/api/users")
+def edit_user(data = Body(), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == data['id']).first()
+    user.name = data['name']
+    user.age = data['age']
+    db.commit()
+    # return user
